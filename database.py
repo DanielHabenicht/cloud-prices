@@ -29,25 +29,25 @@ class PricePoint(Base):
     reservations: Mapped[Optional[str]]
     import_date: Mapped[datetime]
 
-    consumption_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_consumption_types.id"))
+    consumption_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_consumption_types.id"), index=True)
     consumption_type: Mapped["Type"] = relationship(back_populates="price_points")
 
-    meter_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_meters.id"))
+    meter_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_meters.id"), index=True)
     meter: Mapped["Meter"] = relationship(back_populates="price_points")
 
-    region_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_regions.id"))
+    region_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_regions.id"), index=True)
     region: Mapped["Region"] = relationship(back_populates="price_points")
 
-    location_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_locations.id"))
+    location_id: Mapped[Optional[int]] = mapped_column(ForeignKey("azure_locations.id"), index=True)
     location: Mapped["Location"] = relationship(back_populates="price_points")
 
-    product_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_products.id"))
+    product_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_products.id"), index=True)
     product: Mapped["Product"] = relationship(back_populates="price_points")
 
     # sku: Mapped[str] = mapped_column(ForeignKey("azure_sku.id"))
     # sku: Mapped["Sku"] = relationship(back_populates="azure_sku")
 
-    service_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_services.id"))
+    service_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_services.id"), index=True)
     service: Mapped["Service"] = relationship(back_populates="price_points")
 
 

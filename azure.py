@@ -85,21 +85,6 @@ if export_data:
     engine = create_engine(f"sqlite:///{database_path}")
     Base.metadata.create_all(engine)
 
-    
-    @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        # https://github.com/mmomtchev/sqlite-wasm-http?tab=readme-ov-file#page-size
-        cursor.execute("PRAGMA JOURNAL_MODE = DELETE;")
-        cursor.execute("PRAGMA page_size = 1024;")
-        #-- Do it for every FTS table you have
-        #-- (geospatial datasets do not use full text search)
-        # c.execute("INSERT INTO prices_azure(prices_azure) VALUES ('optimize');")
-        #-- Reorganize database and apply changed page size
-        #-- Sometimes you will be surprised by the new size of your DB
-        cursor.execute("VACUUM;")
-        cursor.close()
-
     regions: Dict[str, Meter] = {}
     locations: Dict[str, Location] = {}
     types: Dict[str, Location] = {}
@@ -193,5 +178,18 @@ if export_data:
     with Session(engine) as session:
         session.bulk_save_objects(df["object"])
         session.commit()
+
+    engine.dispose()
+
+    # Optimize Database
+    con = sqlite3.connect(database_path)
+    cursor = con.cursor()
+    # https://github.com/mmomtchev/sqlite-wasm-http?tab=readme-ov-file#page-size
+    # https://github.com/phiresky/world-development-indicators-sqlite/blob/gh-pages/postproc.sh#L15
+    cursor.execute("PRAGMA JOURNAL_MODE = DELETE;")
+    cursor.execute("PRAGMA page_size = 1024;")
+    cursor.execute("PRAGMA optimize")
+    cursor.execute("VACUUM;")
+    cursor.close()
     
 print(df)
