@@ -123,6 +123,7 @@ jobs:
       with:  
         name: data
         path: frontend/dist/test_new.sqlite
+        github-token: ${{ github.token }}
         run-id: ${{ needs.data.outputs.run_id }}
 
     - name: Upload GitHub Pages artifact
