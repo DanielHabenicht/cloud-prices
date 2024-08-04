@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/cloud-prices/",
   plugins: [vue(),
     // prebundleWorkers({
     //     include: "node_modules/sqlite-wasm-http/dist/sqlite-worker.js"
