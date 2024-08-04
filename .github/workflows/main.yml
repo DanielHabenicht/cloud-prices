@@ -56,23 +56,23 @@ jobs:
           }
     
     - name: Display the run ID
-      if: steps.find_run_id.outputs.run_id
+      if: steps.find_run_id.outputs.run_id == ''
       run: echo "The run ID of the last run with the artifact 'data' is ${{ steps.find_run_id.outputs.run_id }}."
 
     - uses: actions/checkout@v2
-      if: steps.find_run_id.outputs.run_id
+      if: steps.find_run_id.outputs.run_id == ''
     - name: Set up Python
-      if: steps.find_run_id.outputs.run_id
+      if: steps.find_run_id.outputs.run_id == ''
       uses: actions/setup-python@v2
       with:
         python-version: "3.10"
     - name: Install dependencies
-      if: steps.find_run_id.outputs.run_id
+      if: steps.find_run_id.outputs.run_id == ''
       run: |
         python -m pip install --upgrade pip poetry
         poetry install
     - name: Query
-      if: steps.find_run_id.outputs.run_id
+      if: steps.find_run_id.outputs.run_id == ''
       run: |
         poetry run python azure.py
 
