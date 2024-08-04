@@ -126,6 +126,13 @@ jobs:
         github-token: ${{ github.token }}
         run-id: ${{ needs.data.outputs.run_id }}
 
+
+        
+    - name: Install dependencies
+      run: |
+        ls -lh
+      working-directory: frontend/dist
+
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3.0.1
       with:
