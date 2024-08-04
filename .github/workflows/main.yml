@@ -65,10 +65,15 @@ jobs:
           } else {
             console.log('No run found with an artifact named "data" within the last 24 hours.');
           }
-    
+
     - name: Display the run ID
       if: steps.find_run_id.outputs.run_id == ''
       run: echo "The run ID of the last run with the artifact 'data' is ${{ steps.find_run_id.outputs.run_id }}."
+
+    - name: Override run ID
+      id: use_override_run_id
+      if: inputs.force_data_query
+      run: echo "::set-output name=run_id::${{ github.run_id }}"
 
     - uses: actions/checkout@v2
       if: steps.find_run_id.outputs.run_id == '' || inputs.force_data_query
@@ -137,7 +142,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
+    - name: Set up Node
       uses: actions/setup-node@v2
       with:
         node-version: "20"
