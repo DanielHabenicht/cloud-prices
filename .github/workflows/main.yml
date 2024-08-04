@@ -12,7 +12,7 @@ on:
       force_data_query:
         description: 'Force data querying'
         required: false
-        default: true
+        default: false
         type: boolean
 jobs:
   data:
