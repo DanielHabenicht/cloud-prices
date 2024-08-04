@@ -20,9 +20,12 @@ jobs:
         script: |
           const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
           const now = new Date();
-          const runs = await github.actions.listWorkflowRunsForRepo({
+          const workflow_id = core.getInput('workflow_id');
+
+          const { data: runs } = await github.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
+            workflow_id: workflow_id,
             per_page: 100
           });
           
