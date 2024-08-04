@@ -103,6 +103,11 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    
+    # Allow one concurrent deployment
+    concurrency:
+      group: 'pages'
+      cancel-in-progress: true
 
     steps:
     - uses: actions/checkout@v2
@@ -110,8 +115,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: "20"
+        cache: "npm"
 
-    - name: Install dependencies
+    - name: Build
       run: |
         npm ci
         npm run build
@@ -135,9 +141,10 @@ jobs:
 
 
         
-    - name: Install dependencies
+    - name: Debug
       run: |
         ls -lh
+        tree
       working-directory: frontend/dist
 
     - name: Upload GitHub Pages artifact
