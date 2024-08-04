@@ -6,16 +6,15 @@ import polars as pl
 import os.path
 import sqlite3
 
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
+logging.info("Starting")
 
 cache_file = "cache.parquet"
-use_cache = True
+use_cache = False
 export_data = True
 
-i = 0
 if (not use_cache) or not os.path.isfile(cache_file) :
-    i = i + 1
-    firstRequest = True
-    items = []
 
     s = requests.Session()
     retries = Retry(total=5,
@@ -24,10 +23,14 @@ if (not use_cache) or not os.path.isfile(cache_file) :
 
     s.mount('https://', HTTPAdapter(max_retries=retries))
 
-    while firstRequest or json["NextPageLink"] is not None: 
-        logging.info("load page")
-        firstRequest = False
-        data = s.get("https://prices.azure.com/api/retail/prices?api-version=2023-01-01-preview&meterRegion='primary'")
+    items = []
+    json = {}
+    page = "https://prices.azure.com/api/retail/prices?api-version=2023-01-01-preview&meterRegion='primary'"
+    while True:
+        if "NextPageLink" in json and json["NextPageLink"] is not None:
+            page = json["NextPageLink"]
+        logging.info(f"load page {page}")
+        data = s.get(page)
 
         json = data.json()
         if "Items" in json:
