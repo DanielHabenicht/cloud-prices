@@ -152,7 +152,7 @@ jobs:
     - name: Build
       run: |
         npm ci
-        npm run build
+        npm run build -- --base=/cloud-prices/ 
       working-directory: frontend
 
     - name: Download Data
@@ -160,7 +160,7 @@ jobs:
       uses: actions/download-artifact@v4.1.8
       with:  
         name: data
-        path: frontend/dist/test_new.sqlite
+        path: frontend/dist
 
     - name: Download Data
       if: needs.data.outputs.run_id
@@ -175,7 +175,6 @@ jobs:
         
     - name: Debug
       run: |
-        ls -lh
         tree
       working-directory: frontend/dist
 

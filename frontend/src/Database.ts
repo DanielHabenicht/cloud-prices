@@ -7,7 +7,7 @@ export default class Database {
     private pool!: SQLiteHTTPPool
 
     async init(){
-        const remoteURL = '/test_new.sqlite';
+        const remoteURL = import.meta.env.BASE_URL + 'test_new.sqlite';
         this.pool = await createSQLiteHTTPPool({ workers: 4 });
         await this.pool.open(remoteURL);
     }
