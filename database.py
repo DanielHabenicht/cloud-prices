@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from typing import Optional
 from uuid import UUID
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Index
 from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -53,6 +53,9 @@ class PricePoint(Base):
 
     def __repr__(self) -> str:
         return f"PricePoint(id={self.id!r})"
+
+Index('service_location', PricePoint.service_id, PricePoint.location_id, PricePoint.consumption_type_id)
+
 
 
 class Type(Base):
