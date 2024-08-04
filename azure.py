@@ -1,3 +1,5 @@
+from datetime import datetime
+import logging 
 import requests
 from requests.adapters import HTTPAdapter, Retry
 import polars as pl
@@ -23,7 +25,7 @@ if (not use_cache) or not os.path.isfile(cache_file) :
     s.mount('https://', HTTPAdapter(max_retries=retries))
 
     while firstRequest or json["NextPageLink"] is not None: 
-        print("load page")
+        logging.info("load page")
         firstRequest = False
         data = s.get("https://prices.azure.com/api/retail/prices?api-version=2023-01-01-preview&meterRegion='primary'")
 
@@ -35,12 +37,13 @@ if (not use_cache) or not os.path.isfile(cache_file) :
 
     print(json)
 
-    df = pl.DataFrame(items)
+    df = pl.json_normalize(items)
 else:
     df = pl.read_parquet(cache_file)
 
 
 df.write_parquet(cache_file)
+df = df.with_columns(import_date = datetime.now())
 
 if export_data:
 
@@ -59,5 +62,4 @@ if export_data:
     c.execute("VACUUM;")
     df.write_database("prices_azure", f"sqlite:///{database_path}", if_table_exists="append")
 
-print(len(df))
 print(df)
