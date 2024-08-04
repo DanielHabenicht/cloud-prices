@@ -167,7 +167,7 @@ jobs:
       uses: actions/download-artifact@v4.1.8
       with:  
         name: data
-        path: frontend/dist/test_new.sqlite
+        path: frontend/dist
         github-token: ${{ github.token }}
         run-id: ${{ needs.data.outputs.run_id }}
 
