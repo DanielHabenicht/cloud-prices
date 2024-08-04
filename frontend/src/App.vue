@@ -1,57 +1,112 @@
 <script setup lang="ts">
-import { createSQLiteHTTPPool } from 'sqlite-wasm-http';
-import { Ref, ref } from 'vue';
-// https://fuzzy-pancake-97q4x4pxgv6hxp59-5173.app.github.dev/node_modules/sqlite-wasm-http/dist/sqlite-worker.js?worker_file&type=classic
+import { Ref, ref, watch } from 'vue';
+import Database from './Database';
+import { LocationDto, ServiceDto, PriceDto, ConsumptionTypeDto} from './types/types';
 
+let serviceMapping: Ref<{ [s: string]: ServiceDto }> = ref({})
 let services: Ref<string[]> = ref([])
+let locationMapping: Ref<{ [s: string]: LocationDto }> = ref({})
 let locations: Ref<string[]> = ref([])
-console.log("start")
+let consumptionTypeMapping: Ref<{ [s: string]: ConsumptionTypeDto }> = ref({})
+let consumptionTypes: Ref<string[]> = ref([])
+let prices: Ref<PriceDto[]> = ref([])
+
+let database: Database
+
 setTimeout(async () => {
   try {
-    const remoteURL = '/test_new.sqlite';
-    const pool = await createSQLiteHTTPPool({ workers: 4 });
-    await pool.open(remoteURL);
+    database = new Database()
+    await database.init()
 
-    const servicesResult = await pool.exec('SELECT id, name  FROM azure_services');
-    services.value = servicesResult.map(r => r.row[1] as string)
+    const dbServices = await database.getServices()
+    services.value = dbServices.map(s => s.id)
+    serviceMapping.value = dbServices.reduce((services, service) => {
+      return {
+        ...services,
+        [service.id]: service
+      }
+    }, {})
 
-    const locationsResult = await pool.exec('SELECT id, name  FROM azure_locations');
-    locations.value = locationsResult.map(r => r.row[1] as string)
+    const dbLocations = await database.getLocations()
+    locations.value = dbLocations.map(l => l.id)
+    locationMapping.value = dbLocations.reduce((locations, location) => {
+      return {
+        ...locations,
+        [location.id]: location
+      }
+    }, {})
 
+    const dbconsumptionTypes = await database.getConsumptionTypes()
+    consumptionTypes.value = dbconsumptionTypes.map(l => l.id)
+    consumptionTypeMapping.value = dbconsumptionTypes.reduce((consumptionTypes, consumptionType) => {
+      return {
+        ...consumptionTypes,
+        [consumptionType.id]: consumptionType
+      }
+    }, {})
 
-
-    // await pool.close();
-  } catch(e){
+  } catch (e) {
     console.log(e)
   }
 }, 0);
 
 const selectService = ref('')
 const selectLocation = ref('')
+const selectConsumptionType = ref('')
+
+watch(
+  [selectService, selectLocation, selectConsumptionType],
+  async ([service, location, consumptionType]) => {
+    if (service && location && consumptionType) {
+      prices.value = await database.getPrices(service, location, consumptionType)
+    }
+  }
+)
 
 </script>
 
 <template>
   <div>
     <h1>
-      Hi!
+      Cloud Cost - Overview
     </h1>
-    <div>Selected: {{ selectService }}</div>
-
+    <div>
+      <div>Service: {{ serviceMapping[selectService]?.name }}</div>
+      <div>Location: {{ locationMapping[selectLocation]?.name }}</div>
+    </div>
     <select v-model="selectService">
       <option disabled value="">Please select one</option>
-      <option v-for="item in services">{{ item }}</option>
+      <option v-for="item in Object.keys(serviceMapping)" :value="item">{{ serviceMapping[item].name }}</option>
     </select>
 
-    <div>Selected: {{ selectLocation }}</div>
 
     <select v-model="selectLocation">
       <option disabled value="">Please select one</option>
-      <option v-for="item in locations">{{ item }}</option>
+      <option v-for="locationId in locations" :value="locationId">{{ locationMapping[locationId].name }}</option>
     </select>
+
+    <select v-model="selectConsumptionType">
+      <option disabled value="">Please select one</option>
+      <option v-for="consumptionId in consumptionTypes" :value="consumptionId">{{ consumptionTypeMapping[consumptionId].name }}</option>
+    </select>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Price</th>
+          <th>Unit</th>
+          <th>Product</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="price in prices">
+          <td>{{ price.retailPrice }} USD</td>
+          <td>{{ price.unit }}</td>
+          <td>{{ price.productName }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
