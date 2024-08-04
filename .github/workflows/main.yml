@@ -20,12 +20,9 @@ jobs:
         script: |
           const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
           const now = new Date();
-          const workflow_id = core.getInput('workflow_id');
-
-          const { data: runs } = await github.actions.listWorkflowRuns({
+          const runs = await github.rest.actions.listWorkflowRunsForRepo({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: workflow_id,
             per_page: 100
           });
           
@@ -39,7 +36,7 @@ jobs:
               continue; // Skip runs older than 24 hours
             }
 
-            const artifacts = await github.actions.listWorkflowRunArtifacts({
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: run.id
