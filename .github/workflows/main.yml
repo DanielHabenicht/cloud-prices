@@ -8,32 +8,42 @@ on:
     branches: [ main ]
 
 jobs:
-  data:
-    runs-on: ubuntu-latest
+  # data:
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip poetry
-        poetry install
-    - name: Query
-      run: |
-        poetry run python azure.py
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v2
+  #     with:
+  #       python-version: "3.10"
+  #   - name: Install dependencies
+  #     run: |
+  #       python -m pip install --upgrade pip poetry
+  #       poetry install
+  #   - name: Query
+  #     run: |
+  #       poetry run python azure.py
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.3.5
-      with:
-        name: data
-        path: frontend/public/test_new.sqlite
+  #   - name: Upload a Build Artifact
+  #     uses: actions/upload-artifact@v4.3.5
+  #     with:
+  #       name: data
+  #       path: frontend/public/test_new.sqlite
               
   frontend:
     runs-on: ubuntu-latest
-    needs: [data]
+    # needs: [data]
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+   # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     - uses: actions/checkout@v2
@@ -53,6 +63,7 @@ jobs:
       with:  
         name: data
         path: frontend/dist/test_new.sqlite
+        run-id: 10236071829
 
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3.0.1
@@ -61,4 +72,5 @@ jobs:
         path: frontend/dist
               
     - name: Deploy GitHub Pages site
+      id: deployment
       uses: actions/deploy-pages@v4.0.5              
