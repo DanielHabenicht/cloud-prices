@@ -44,8 +44,8 @@ class PricePoint(Base):
     product_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_products.id"), index=True)
     product: Mapped["Product"] = relationship(back_populates="price_points")
 
-    # sku: Mapped[str] = mapped_column(ForeignKey("azure_sku.id"))
-    # sku: Mapped["Sku"] = relationship(back_populates="azure_sku")
+    sku_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_skus.id"), index=True)
+    sku: Mapped["Sku"] = relationship(back_populates="price_points")
 
     service_id: Mapped[Optional[str]] = mapped_column(ForeignKey("azure_services.id"), index=True)
     service: Mapped["Service"] = relationship(back_populates="price_points")
@@ -108,6 +108,10 @@ class Sku(Base):
     id: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
 
+    price_points: Mapped[List["PricePoint"]] = relationship(
+        back_populates="sku", cascade="all, delete-orphan"
+    )
+
     def __repr__(self) -> str:
         return f"Sku(id={self.id!r})"
     
@@ -115,7 +119,6 @@ class Service(Base):
     __tablename__ = "azure_services"
     id: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    # TODO:
     family: Mapped[Optional[str]] = mapped_column(String(30))
 
     price_points: Mapped[List["PricePoint"]] = relationship(

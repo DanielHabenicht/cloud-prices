@@ -76,11 +76,12 @@ df = df.with_columns(
     .otherwise(pl.col(pl.String))
     .name.keep()
 )
-# TODO: reduce size by transforming data into multiple tables.
 
 if export_data:
     database_path = "frontend/public/test_new.sqlite"
     logging.info(f"Export to {database_path}")
+
+    os.remove(database_path)
 
     engine = create_engine(f"sqlite:///{database_path}")
     Base.metadata.create_all(engine)
@@ -88,10 +89,10 @@ if export_data:
     regions: Dict[str, Meter] = {}
     locations: Dict[str, Location] = {}
     types: Dict[str, Location] = {}
-    meters: Dict[str, Location] = {}
     products: Dict[str, Location] = {}
-    skus: Dict[str, Location] = {}
     services: Dict[str, Location] = {}
+    meters: Dict[str, Meter] = {}
+    skus: Dict[str, Sku] = {}
 
     logging.info("mapping regions")
     for region in df["armRegionName"].unique():
@@ -136,12 +137,35 @@ if export_data:
         )
 
     
+    logging.info("mapping meters")
+    meter_variations = df[["meterId", "meterName"]].unique(["meterId"])
+    if len(meter_variations) != len(df["meterId"].unique()):
+        logging.warning("meter ids not unique")
+    for type in meter_variations.rows(named=True):
+        meters[type["meterId"]] = Meter(
+            id=uuid.UUID(type["meterId"]),
+            name=type["meterName"],
+        )
+
+    logging.info("mapping skus")
+    sku_variations = df[["skuId", "skuName"]].unique(["skuId"])
+    if len(sku_variations) != len(df["skuId"].unique()):
+        raise Exception("sku ids not unique")
+    for type in sku_variations.rows(named=True):
+        skus[type["skuId"]] = Sku(
+            id=type["skuId"],
+            name=type["skuName"],
+        )
+
+
     with Session(engine) as session:
         session.bulk_save_objects(services.values())
         session.bulk_save_objects(products.values())
         session.bulk_save_objects(locations.values())
         session.bulk_save_objects(regions.values())
         session.bulk_save_objects(types.values())
+        session.bulk_save_objects(meters.values())
+        session.bulk_save_objects(skus.values())
         session.commit()
 
         regions = {x.arm_name: x.id for x in session.scalars(select(Region)).all()}
@@ -168,7 +192,8 @@ if export_data:
                     location_id=locations[row["location"]] if row["location"] is not None else None,
                     consumption_type_id=types[row["type"]] if row["type"] is not None else None,
                     service_id=row["serviceId"],
-                    product_id=row["productId"]
+                    product_id=row["productId"],
+                    sku_id=row["skuId"]
 
             ))
             .alias('object'))
